@@ -7,7 +7,6 @@ const boolRE = /(^true|^false)/
 const spaceRE = /^(\s)+/
 
 const nullParser = function(input){
-    input = spaceParser(input)
     if(input.slice(0,4) != 'null'){
         return null
     }
@@ -15,7 +14,6 @@ const nullParser = function(input){
 }
 
 const booleanParser = function(input){
-    input = spaceParser(input)
     let bool = boolRE.exec(input)
     if(!bool){
         return null
@@ -24,7 +22,6 @@ const booleanParser = function(input){
 }
 
 const numberParser = function(input){
-    input = spaceParser(input)
     let string = numRE.exec(input)
     if(!string){
         return null
@@ -35,7 +32,6 @@ const numberParser = function(input){
 }
 
 const stringParser = function(input){
-    input = spaceParser(input)
     if (input[0] != '"'){
         return null
     }
@@ -53,8 +49,65 @@ const spaceParser = function(input){
     return input
 }
 
+const commaParser = function(input){
+    if(input[0] != ','){
+        return null
+    }
+    return [', ', input.slice(1)]
+}
+
+const arrayParser = function(input){
+    if(input[0] != '['){
+        return null
+    }
+    input = input.slice(1)
+    let result, outputArray = '['
+    while(input[0] != ']'){
+        if(input[0] == ']')
+            break;
+        result = valueParser(input)
+        outputArray += result[0]
+        input = result[1]
+    }
+    outputArray += ']'
+    return [outputArray, input.slice(1)]
+}
+
+const colonParser = function(input){
+    if(input[0] != ':')
+        return null
+    return [':', input.slice(1)]
+}
+
+const objectParser = function(input){
+    if(input[0] != '{')
+        return null
+    input = input.slice(1)
+    let outputObject = '{'
+
+    while(input[0] != '}'){
+        input = spaceParser(input)
+        if(input[0] == '}')
+            break
+        result = valueParser(input)
+        outputObject += result[0]
+        input = result[1]
+    }
+    outputObject += '}'
+    return [outputObject, input.slice(1)]
+}
+
 const valueParser = function(input){
+    input = spaceParser(input)
     let result
+    if(result = objectParser(input))
+        return result
+    if(result = colonParser(input))
+        return result
+    if(result = arrayParser(input))
+        return result
+    if(result = commaParser(input))
+        return result
     if(result = nullParser(input))
         return result
     if(result = booleanParser(input))
@@ -63,37 +116,9 @@ const valueParser = function(input){
         return result
     if(result = numberParser(input))
         return result
-
-    return null
-}
-
-const commaParser = function(input){
-    input = spaceParser(input)
-    if(input[0] != ',')
-        return ['', input]
-    return [',', input.slice(1)]
-}
-
-const arrayParser = function(input){
-    input = spaceParser(input)
-    if(input[0] != '['){
+    if (input != '')
         return null
-    }
-    input = input.slice(1)
-    let result, outputArray = ''
-    outputArray += '['
-    while(input[0] != ']'){
-        input = spaceParser(input)
-        result = valueParser(input)
-        outputArray +=result[0] + ', '
-        input = result[1]
-
-        result = commaParser(input)
-        input = result[1]
-    }
-    outputArray += input[0]
-    return [outputArray, input.slice(1)]
 }
 
-let getParsed = arrayParser(ancestry)
+let getParsed = valueParser(ancestry)
 console.log(getParsed[0])
