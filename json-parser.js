@@ -1,8 +1,8 @@
 const fs = require('fs')
 const path = require('path')
-const ancestry = fs.readFileSync(path.join(__dirname,'./ancestry.json')).toString()
+const file = fs.readFileSync(path.join(__dirname,'./file.json')).toString()
 
-const numRE = /\d+/
+const numRE = /^[-+]?\d+\.?\d+([e][-+]?\d+)?/
 const boolRE = /(^true|^false)/
 const spaceRE = /^(\s)+/
 
@@ -26,7 +26,7 @@ const numberParser = function(input){
     if(!string){
         return null
     }
-    let number = string[0]
+    let number = parseInt(string[0])
     let length = string[0].length
     return [number, input.slice(length)]
 }
@@ -51,6 +51,7 @@ const spaceParser = function(input){
 }
 
 const commaParser = function(input){
+    input = spaceParser(input)
     if(input[0] != ','){
         return null
     }
@@ -62,19 +63,22 @@ const arrayParser = function(input){
         return null
     }
     input = input.slice(1)
-    let result, outputArray = '['
+    let result, outputArray = []
     while(input[0] != ']'){
-        if(input[0] == ']')
-            break;
         result = valueParser(input)
-        outputArray += result[0]
+        outputArray.push(result[0])
+        input = result[1]
+
+        result = commaParser(input)
+        if(!result)
+            break
         input = result[1]
     }
-    outputArray += ']'
     return [outputArray, input.slice(1)]
 }
 
 const colonParser = function(input){
+    input = spaceParser(input)
     if(input[0] != ':')
         return null
     return [':', input.slice(1)]
@@ -95,23 +99,19 @@ const objectParser = function(input){
         let key = result[0]
         input = result[1]
 
-        input = spaceParser(input)
         result = colonParser(input)
         input = result[1]
 
-        input = spaceParser(input)
         result = valueParser(input)
         let value = result[0]
         input = result[1]
 
         outputObject[key] = value //store in object
 
-        input = spaceParser(input)
         result = commaParser(input)
         if(!result)
             break
         input = result[1]
-
     }
     return [outputObject, input.slice(1)]
 }
@@ -119,15 +119,11 @@ const objectParser = function(input){
 const valueParser = function(input){
     input = spaceParser(input)
     let result
+    if(result = nullParser(input))
+        return result
     if(result = objectParser(input))
         return result
-    if(result = colonParser(input))
-        return result
     if(result = arrayParser(input))
-        return result
-    if(result = commaParser(input))
-        return result
-    if(result = nullParser(input))
         return result
     if(result = booleanParser(input))
         return result
@@ -139,8 +135,11 @@ const valueParser = function(input){
         return null
 }
 
-let getParsed = valueParser(ancestry)
-//console.log(getParsed[0])
-// IDEA: stringify function??
-let temp = JSON.stringify(getParsed[0], null, 4)
-console.log(temp)
+let getParsed = objectParser(file)
+if(getParsed){
+    let temp = JSON.stringify(getParsed[0], null, 4)
+    console.log(temp)
+}
+else {
+    console.log("Invalid input")
+}
