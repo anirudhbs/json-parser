@@ -37,14 +37,15 @@ const stringParser = function(input){
     }
     input = input.slice(1)
     let EoS = input.indexOf('"')
-    let string = '"' + input.slice(0, EoS) + '"'
+    let string = input.slice(0, EoS).toString()
     return [string, input.slice(EoS+1)]
 }
 
 const spaceParser = function(input){
     let temp = spaceRE.exec(input)
-    if(!temp)
+    if(!temp){
         return input
+    }
     input = input.replace(spaceRE, '')
     return input
 }
@@ -83,17 +84,35 @@ const objectParser = function(input){
     if(input[0] != '{')
         return null
     input = input.slice(1)
-    let outputObject = '{'
+    let outputObject = {}, result = null
 
     while(input[0] != '}'){
         input = spaceParser(input)
         if(input[0] == '}')
             break
-        result = valueParser(input)
-        outputObject += result[0]
+
+        result = stringParser(input)
+        let key = result[0]
         input = result[1]
+
+        input = spaceParser(input)
+        result = colonParser(input)
+        input = result[1]
+
+        input = spaceParser(input)
+        result = valueParser(input)
+        let value = result[0]
+        input = result[1]
+
+        outputObject[key] = value //store in object
+
+        input = spaceParser(input)
+        result = commaParser(input)
+        if(!result)
+            break
+        input = result[1]
+
     }
-    outputObject += '}'
     return [outputObject, input.slice(1)]
 }
 
@@ -121,4 +140,7 @@ const valueParser = function(input){
 }
 
 let getParsed = valueParser(ancestry)
-console.log(getParsed[0])
+//console.log(getParsed[0])
+// IDEA: stringify function??
+let temp = JSON.stringify(getParsed[0], null, 4)
+console.log(temp)
