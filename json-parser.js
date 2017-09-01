@@ -5,11 +5,11 @@ const file = fs.readFileSync(path.join(__dirname,'./file.json')).toString()
 const numRE = /^([-+]?\d+\.?\d?([e][-+]?\d+)?)/
 const boolRE = /(^true|^false)/
 const spaceRE = /^(\s)+/
+let getParsed, temp
 
 const nullParser = function(input){
-    if(input.slice(0,4) != 'null'){
+    if(input.slice(0,4) != 'null')
         return null
-    }
     return [null, input.slice(4)]
 }
 
@@ -24,18 +24,16 @@ const booleanParser = function(input){
 
 const numberParser = function(input){
     let string = numRE.exec(input)
-    if(!string){
+    if(!string)
         return null
-    }
     let number = parseInt(string[0])
     let length = string[0].length
     return [number, input.slice(length)]
 }
 
 const stringParser = function(input){
-    if (input[0] != '"'){
+    if (input[0] != '"')
         return null
-    }
     input = input.slice(1)
     let EoS = input.indexOf('"')
     let string = input.slice(0, EoS).toString()
@@ -44,25 +42,22 @@ const stringParser = function(input){
 
 const spaceParser = function(input){
     let temp = spaceRE.exec(input)
-    if(!temp){
+    if(!temp)
         return input
-    }
     input = input.replace(spaceRE, '')
     return input
 }
 
 const commaParser = function(input){
     input = spaceParser(input)
-    if(input[0] != ','){
+    if(input[0] != ',')
         return null
-    }
     return [',', input.slice(1)]
 }
 
 const arrayParser = function(input){
-    if(input[0] != '['){
+    if(input[0] != '[')
         return null
-    }
     input = input.slice(1)
     let result, outputArray = []
     while(input[0] != ']'){
@@ -90,7 +85,6 @@ const objectParser = function(input){
         return null
     input = input.slice(1)
     let outputObject = {}, result = null
-
     while(input[0] != '}'){
         input = spaceParser(input)
         if(input[0] == '}')
@@ -131,11 +125,12 @@ const valueParser = function(input){
         return null
 }
 
-let getParsed = objectParser(file)
-if(getParsed){
-    let temp = JSON.stringify(getParsed[0], null, 4)
-    console.log(temp)
+try{
+    getParsed = objectParser(file)
 }
-else {
-    console.log("Invalid input")
+catch(err){
+    temp = 'Invalid input'
 }
+if(!temp)
+    temp = JSON.stringify(getParsed[0], null, 4)
+console.log(temp)
