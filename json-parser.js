@@ -18,8 +18,13 @@ const booleanParser = function(input){
     if(!bool){
         return null
     }
-    return [bool[0], input.slice(bool[0].length)]
+    let istrue = (bool[0] == 'true')
+    if(istrue)
+        return [true, input.slice(bool[0].length)]
+    return [false, input.slice(bool[0].length)]
 }
+
+// IDEA: var isTrueSet = (myValue == 'true');
 
 const numberParser = function(input){
     let string = numRE.exec(input)
@@ -27,7 +32,7 @@ const numberParser = function(input){
         return null
     }
     let number = parseInt(string[0])
-    let length = string[0].length
+    let length = number.length
     return [number, input.slice(length)]
 }
 
