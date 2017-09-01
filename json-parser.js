@@ -2,7 +2,7 @@ const fs = require('fs')
 const path = require('path')
 const file = fs.readFileSync(path.join(__dirname,'./file.json')).toString()
 
-const numRE = /^[-+]?\d+\.?\d+([e][-+]?\d+)?/
+const numRE = /^([-+]?\d+\.?\d?([e][-+]?\d+)?)/
 const boolRE = /(^true|^false)/
 const spaceRE = /^(\s)+/
 
@@ -15,16 +15,12 @@ const nullParser = function(input){
 
 const booleanParser = function(input){
     let bool = boolRE.exec(input)
-    if(!bool){
+    if(!bool)
         return null
-    }
-    let istrue = (bool[0] == 'true')
-    if(istrue)
+    if(bool[0] == 'true')
         return [true, input.slice(bool[0].length)]
     return [false, input.slice(bool[0].length)]
-}
-
-// IDEA: var isTrueSet = (myValue == 'true');
+}// IDEA: var isTrueSet = (myValue == 'true');
 
 const numberParser = function(input){
     let string = numRE.exec(input)
@@ -32,7 +28,7 @@ const numberParser = function(input){
         return null
     }
     let number = parseInt(string[0])
-    let length = number.length
+    let length = string[0].length
     return [number, input.slice(length)]
 }
 
@@ -60,7 +56,7 @@ const commaParser = function(input){
     if(input[0] != ','){
         return null
     }
-    return [', ', input.slice(1)]
+    return [',', input.slice(1)]
 }
 
 const arrayParser = function(input){
@@ -70,11 +66,11 @@ const arrayParser = function(input){
     input = input.slice(1)
     let result, outputArray = []
     while(input[0] != ']'){
-        result = valueParser(input)
+        result = valueParser(input) //value
         outputArray.push(result[0])
         input = result[1]
 
-        result = commaParser(input)
+        result = commaParser(input) //comma
         if(!result)
             break
         input = result[1]
@@ -99,21 +95,16 @@ const objectParser = function(input){
         input = spaceParser(input)
         if(input[0] == '}')
             break
-
-        result = stringParser(input)
+        result = stringParser(input) //key
         let key = result[0]
         input = result[1]
-
-        result = colonParser(input)
+        result = colonParser(input) //colon
         input = result[1]
-
-        result = valueParser(input)
+        result = valueParser(input) //value
         let value = result[0]
         input = result[1]
-
         outputObject[key] = value //store in object
-
-        result = commaParser(input)
+        result = commaParser(input) //end of object
         if(!result)
             break
         input = result[1]
