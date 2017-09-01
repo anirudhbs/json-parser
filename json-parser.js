@@ -23,7 +23,7 @@ const booleanParser = function(input){
 const numberParser = function(input){
     let string = numRE.exec(input)
     if(!string) return null
-    let number = parseInt(string[0])
+    let number = parseInt(string[0]) //try float
     let length = string[0].length
     return [number, input.slice(length)]
 }
@@ -41,7 +41,7 @@ const spaceParser = function(input){
     if(!temp) return input
     input = input.replace(spaceRE, '')
     return input
-}
+}//change signature
 
 const commaParser = function(input){
     input = spaceParser(input)
@@ -110,15 +110,17 @@ const valueParser = function(input){
         return result
     if (input != '')
         return null
-}
+}//or stmt
+//different fxn
 
 try{
     getParsed = objectParser(file)
     temp = JSON.stringify(getParsed[0], null, 4)
 }
 catch(err){
-    temp = 'Invalid JSON'
+    temp = 'Invalid JSON' //redundant
 }
 if(!temp)
     temp = 'Invalid JSON'
 console.log(temp)
+// map filter reduce
