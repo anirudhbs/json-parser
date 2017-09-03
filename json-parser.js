@@ -1,6 +1,6 @@
 const fs = require('fs')
 const path = require('path')
-const file = fs.readFileSync(path.join(__dirname,'./twitter.json')).toString()
+const file = fs.readFileSync(path.join(__dirname,'./file.json')).toString()
 let temp = null
 
 const nullParser = function(input){
@@ -31,21 +31,20 @@ const spaceParser = function(input){
 }
 
 const commaParser = function(input){
-    return input[0] === ',' ? [',', input.slice(1)] : null
+    return input[0] === ',' ? input.slice(1) : input
+
 }
 
 const arrayParser = function(input){
-    if(input[0] != '[') return null
+    if(input[0] !== '[') return null
     input = input.slice(1)
     let result, outputArray = []
-    while(input[0] != ']'){
+    while(input[0] !== ']'){
         result = valueParser(input) //value
         outputArray.push(result[0])
-        input = result[1]
-        result = commaParser(spaceParser(input)) //comma
-        if(!result) break
-        input = result[1]
+        input = commaParser(spaceParser(result[1])) //comma
     }
+    input = spaceParser(input)
     return [outputArray, input.slice(1)]
 }
 
@@ -54,44 +53,48 @@ const keyParser = function(input){
 }
 
 const colonParser = function(input){
-    return input[0] === ':' ? [':', input.slice(1)] : null
+    return input[0] === ':' ? input.slice(1) : input
 }
 
 const objectParser = function(input){
     if(input[0] != '{') return null
     input = input.slice(1)
+
     let outputObject = {}, result = null
+
     while(input[0] != '}'){
         input = spaceParser(input)
         if(input[0] == '}') break
+
         result = keyParser(input) //key
         let key = result[0]
         input = result[1]
         result = colonParser(spaceParser(input)) //colon
-        input = result[1]
+        input = result
         result = valueParser(input) //value
         let value = result[0]
         input = result[1]
         outputObject[key] = value //store in object
         result = commaParser(spaceParser(input))
-        if(!result) break //end of object
-        input = result[1]
+        //if(!result) break //end of object
+        input = result
     }
+    input = spaceParser(input)
     return [outputObject, input.slice(1)]
 }
 
 const valueParser = function(input){
     input = spaceParser(input)
     let result
-    if(result = (nullParser(input) || objectParser(input) || arrayParser(input) || booleanParser(input) || stringParser(input) || numberParser(input)))
+    if(result = (nullParser(input) || booleanParser(input) || stringParser(input) || numberParser(input) || arrayParser(input) || objectParser(input)))
         return result
-    if (input != '')
+    //if (input != '')
         return null
-}//make different fxn
+}
 
 let getParsed = valueParser(file)
-temp = JSON.stringify(getParsed[0], null, 4)
-console.log(temp)
+//temp = JSON.stringify(getParsed[0], null, 4)
+console.log(JSON.stringify(getParsed[0], null, 4))
 
 // map filter reduce
 /*
