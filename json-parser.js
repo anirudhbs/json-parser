@@ -3,29 +3,21 @@ const path = require('path')
 const file = fs.readFileSync(path.join(__dirname,'./file.json')).toString()
 
 const numRE = /^([-+]?\d+\.?\d?([e][-+]?\d+)?)/
-const boolRE = /(^true|^false)/
-const spaceRE = /^(\s)+/
 let getParsed, temp= null
 
 const nullParser = function(input){
-    if(input.slice(0,4) != 'null') return null
-    return [null, input.slice(4)]
+    return input.slice(0,4) === 'null' ? [null, input.slice(4)] : null
 }
 
 const booleanParser = function(input){
-    let bool = boolRE.exec(input)
+    let bool = /(^true|^false)/.exec(input)
     if(!bool) return null
-    if(bool[0] == 'true')
-        return [true, input.slice(bool[0].length)]
-    return [false, input.slice(bool[0].length)]
-}// IDEA: var isTrueSet = (myValue == 'true');
+    return bool[0] === 'true' ? [true, input.slice(bool[0].length)] : [false, input.slice(bool[0].length)]
+}
 
 const numberParser = function(input){
     let string = numRE.exec(input)
-    if(!string) return null
-    let number = parseInt(string[0]) //try float
-    let length = string[0].length
-    return [number, input.slice(length)]
+    return string ? [parseFloat(string[0]), input.slice(string[0].length)] : null
 }
 
 const stringParser = function(input){
@@ -37,16 +29,15 @@ const stringParser = function(input){
 }
 
 const spaceParser = function(input){
-    let temp = spaceRE.exec(input)
+    let temp = /^(\s)+/.exec(input)
     if(!temp) return input
-    input = input.replace(spaceRE, '')
+    input = input.replace(/^(\s)+/, '')
     return input
 }//change signature
 
 const commaParser = function(input){
     input = spaceParser(input)
-    if(input[0] != ',') return null
-    return [',', input.slice(1)]
+    return input[0] === ',' ? [',', input.slice(1)] : null
 }
 
 const arrayParser = function(input){
@@ -66,8 +57,7 @@ const arrayParser = function(input){
 
 const colonParser = function(input){
     input = spaceParser(input)
-    if(input[0] != ':') return null
-    return [':', input.slice(1)]
+    return input[0] === ':' ? [':', input.slice(1)] : null
 }
 
 const objectParser = function(input){
@@ -96,22 +86,11 @@ const objectParser = function(input){
 const valueParser = function(input){
     input = spaceParser(input)
     let result
-    if(result = nullParser(input))
-        return result
-    if(result = objectParser(input))
-        return result
-    if(result = arrayParser(input))
-        return result
-    if(result = booleanParser(input))
-        return result
-    if(result = stringParser(input))
-        return result
-    if(result = numberParser(input))
+    if(result = (nullParser(input) || objectParser(input) || arrayParser(input) || booleanParser(input) || stringParser(input) || numberParser(input)))
         return result
     if (input != '')
         return null
-}//or stmt
-//different fxn
+}//make different fxn
 
 try{
     getParsed = objectParser(file)
