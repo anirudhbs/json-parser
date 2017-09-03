@@ -1,9 +1,7 @@
 const fs = require('fs')
 const path = require('path')
-const file = fs.readFileSync(path.join(__dirname,'./file.json')).toString()
-
-const numRE = /^([-+]?\d+\.?\d?([e][-+]?\d+)?)/
-let getParsed, temp= null
+const file = fs.readFileSync(path.join(__dirname,'./twitter.json')).toString()
+let temp = null
 
 const nullParser = function(input){
     return input.slice(0,4) === 'null' ? [null, input.slice(4)] : null
@@ -16,7 +14,7 @@ const booleanParser = function(input){
 }
 
 const numberParser = function(input){
-    let string = numRE.exec(input)
+    let string = /^([-+]?\d+\.?\d?([e][-+]?\d+)?)/.exec(input)
     return string ? [parseFloat(string[0]), input.slice(string[0].length)] : null
 }
 
@@ -29,14 +27,10 @@ const stringParser = function(input){
 }
 
 const spaceParser = function(input){
-    let temp = /^(\s)+/.exec(input)
-    if(!temp) return input
-    input = input.replace(/^(\s)+/, '')
-    return input
-}//change signature
+    return /^(\s)+/.exec(input) ? input.replace(/^(\s)+/, '') : input
+}
 
 const commaParser = function(input){
-    input = spaceParser(input)
     return input[0] === ',' ? [',', input.slice(1)] : null
 }
 
@@ -48,15 +42,18 @@ const arrayParser = function(input){
         result = valueParser(input) //value
         outputArray.push(result[0])
         input = result[1]
-        result = commaParser(input) //comma
+        result = commaParser(spaceParser(input)) //comma
         if(!result) break
         input = result[1]
     }
     return [outputArray, input.slice(1)]
 }
 
+const keyParser = function(input){
+    return stringParser(input)
+}
+
 const colonParser = function(input){
-    input = spaceParser(input)
     return input[0] === ':' ? [':', input.slice(1)] : null
 }
 
@@ -67,17 +64,17 @@ const objectParser = function(input){
     while(input[0] != '}'){
         input = spaceParser(input)
         if(input[0] == '}') break
-        result = stringParser(input) //key
+        result = keyParser(input) //key
         let key = result[0]
         input = result[1]
-        result = colonParser(input) //colon
+        result = colonParser(spaceParser(input)) //colon
         input = result[1]
         result = valueParser(input) //value
         let value = result[0]
         input = result[1]
         outputObject[key] = value //store in object
-        result = commaParser(input) //end of object
-        if(!result) break
+        result = commaParser(spaceParser(input))
+        if(!result) break //end of object
         input = result[1]
     }
     return [outputObject, input.slice(1)]
@@ -92,8 +89,14 @@ const valueParser = function(input){
         return null
 }//make different fxn
 
+let getParsed = valueParser(file)
+temp = JSON.stringify(getParsed[0], null, 4)
+console.log(temp)
+
+// map filter reduce
+/*
 try{
-    getParsed = objectParser(file)
+    let getParsed = valueParser(file)
     temp = JSON.stringify(getParsed[0], null, 4)
 }
 catch(err){
@@ -102,4 +105,4 @@ catch(err){
 if(!temp)
     temp = 'Invalid JSON'
 console.log(temp)
-// map filter reduce
+*/
