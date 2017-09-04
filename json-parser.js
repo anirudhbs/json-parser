@@ -19,7 +19,7 @@ const numberParser = function(input){
 }
 
 const stringParser = function(input){
-    if (input[0] != '"') return null
+    if (input[0] !== '"') return null
     input = input.slice(1)
     input = input.replace(/\\"/, '\'') //fix this
     let EoS = input.indexOf('"')
@@ -58,7 +58,7 @@ const colonParser = function(input){
 }
 
 const objectParser = function(input){
-    if(input[0] != '{') return null
+    if(input[0] !== '{') return null
     input = input.slice(1)
     let outputObject = {}, result = null
     while(input[0] != '}'){
