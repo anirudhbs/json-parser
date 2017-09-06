@@ -21,8 +21,7 @@ const numberParser = function(input){
 const stringParser = function(input){
     if (input[0] !== '"') return null
     input = input.slice(1)
-    input = input.replace(/\\"/, '\'') //fix this
-    let EoS = input.indexOf('"')
+    let EoS = /"([,\]:}\n])/.exec(input).index
     let string = input.slice(0, EoS).toString()
     return [string, input.slice(EoS+1)]
 }
@@ -33,7 +32,6 @@ const spaceParser = function(input){
 
 const commaParser = function(input){
     return input[0] === ',' ? input.slice(1) : input
-
 }
 
 const arrayParser = function(input){
@@ -41,10 +39,10 @@ const arrayParser = function(input){
     input = input.slice(1)
     let result, outputArray = []
     while(input[0] !== ']'){
-        result = valueParser(input) //value
+        result = valueParser(spaceParser(input)) //value
         outputArray.push(result[0])
         input = commaParser(spaceParser(result[1])) //comma
-        input = spaceParser(input) //testing
+        input = spaceParser(input) //test
     }
     return [outputArray, input.slice(1)]
 }
@@ -63,22 +61,19 @@ const objectParser = function(input){
     let outputObject = {}, result = null
     while(input[0] != '}'){
         input = spaceParser(input)
-        if(input[0] == '}') break
+        if(input[0] === '}') break
         result = keyParser(input) //key
         let key = result[0]
-        input = result[1]
-        input = colonParser(spaceParser(input)) //colon
-        result = valueParser(input) //value
+        input = colonParser(spaceParser(result[1])) //colon
+        result = valueParser(spaceParser(input)) //value
         let value = result[0]
-        input = result[1]
         outputObject[key] = value //store in object
-        input = commaParser(spaceParser(input))
+        input = commaParser(spaceParser(result[1]))
     }
     return [outputObject, input.slice(1)]
 }
 
 const valueParser = function(input){
-    input = spaceParser(input)
     let result
     if(result = (nullParser(input) || booleanParser(input) || stringParser(input) || numberParser(input) || arrayParser(input) || objectParser(input)))
         return result
@@ -90,7 +85,7 @@ try{
     temp = JSON.stringify(getParsed[0], null, 4)
 }catch(err){
     temp = 'Invalid JSON'
-}
+ }
 
 if(!temp) temp = 'Invalid JSON'
 console.log(temp)
