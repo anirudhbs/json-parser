@@ -21,7 +21,7 @@ const numberParser = function(input){
 const stringParser = function(input){
     if (input[0] !== '"') return null
     input = input.slice(1)
-    let EoS = /"([,\]:}\n])/.exec(input).index
+    let EoS = /"[,\]:}\n]/.exec(input).index
     let string = input.slice(0, EoS).toString()
     return [string, input.slice(EoS+1)]
 }
