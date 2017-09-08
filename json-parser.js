@@ -21,7 +21,7 @@ const numberParser = function(input){
 const stringParser = function(input){
     if (input[0] !== '"') return null
     input = input.slice(1)
-    let EoS = /"[,\]:}\n]/.exec(input).index
+    let EoS = /"[,\]:}\n]/.exec(input).index // (?:\\\"|")*
     let string = input.slice(0, EoS).toString()
     return [string, input.slice(EoS+1)]
 }
@@ -37,14 +37,14 @@ const commaParser = function(input){
 const arrayParser = function(input){
     if(input[0] !== '[') return null
     input = input.slice(1)
-    let result, outputArray = []
+    let result, array = []
     while(input[0] !== ']'){
         result = valueParser(spaceParser(input)) //value
-        outputArray.push(result[0])
+        array.push(result[0])
         input = commaParser(spaceParser(result[1])) //comma
         input = spaceParser(input) //test
     }
-    return [outputArray, input.slice(1)]
+    return [array, input.slice(1)]
 }
 
 const keyParser = function(input){
@@ -63,12 +63,14 @@ const objectParser = function(input){
         input = spaceParser(input)
         if(input[0] === '}') break
         result = keyParser(input) //key
-        let key = result[0]
-        input = colonParser(spaceParser(result[1])) //colon
+        let key
+        [key, input] = result
+        input = colonParser(spaceParser(input)) //colon
         result = valueParser(spaceParser(input)) //value
-        let value = result[0]
+        let value
+        [value, input] = result
         outputObject[key] = value //store in object
-        input = commaParser(spaceParser(result[1]))
+        input = commaParser(spaceParser(input))
     }
     return [outputObject, input.slice(1)]
 }
@@ -86,6 +88,5 @@ try{
 }catch(err){
     temp = 'Invalid JSON'
  }
-
 if(!temp) temp = 'Invalid JSON'
 console.log(temp)
